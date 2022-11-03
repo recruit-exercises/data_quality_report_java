@@ -1,0 +1,15 @@
+
+target/
+venv/
+# any folder that start with venv
+venv*/
+
+/dist/
+
+# IDEA
+.idea/
+*.iml
+
+# Eclipse IDE
+.project
+.settings
