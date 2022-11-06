@@ -1,4 +1,6 @@
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
+import org.graalvm.polyglot.PolyglotAccess;
 import org.graalvm.polyglot.Source;
 
 import java.io.*;
@@ -11,8 +13,8 @@ public class DataQualityReport_javacall {
     //private static String VENV_EXECUTABLE = RunGraalPython3.class.getClassLoader().getResource(Paths.get("venv", "bin", "graalpython").toString()).getPath();
     private static String SOURCE_FILE_NAME_1 = "nhatvd2.py";
     private static InputStream SOURCE_FILE_INPUT_1 = DataQualityReport_javacall.class.getClassLoader().getResourceAsStream(SOURCE_FILE_NAME_1);
-//    private static String SOURCE_FILE_NAME_2 = "test_dataqualityreport_vdn.py";
-//    private static InputStream SOURCE_FILE_INPUT_2 = DataQualityReport_javacall.class.getClassLoader().getResourceAsStream(SOURCE_FILE_NAME_2);
+    private static String SOURCE_FILE_NAME_2 = "test_dataqualityreport_vdn.py";
+    private static InputStream SOURCE_FILE_INPUT_2 = DataQualityReport_javacall.class.getClassLoader().getResourceAsStream(SOURCE_FILE_NAME_2);
 
     public static void log(String s){
         System.out.println(s);
@@ -37,14 +39,22 @@ public class DataQualityReport_javacall {
 
         //try (Context context = Context.create()) {
         //try (Context context = Context.newBuilder(PYTHON).allowAllAccess(true).build()) {
-        try (Context context = Context.newBuilder("python").
-                allowAllAccess(true).
-                option("python.ForceImportSite", "true").
-                option("python.Executable", VENV_EXECUTABLE).
-                build();) {
+        try (Context context = Context.newBuilder("python")
+                .allowAllAccess(true)
+                .option("python.ForceImportSite", "true")
+                .allowNativeAccess(true)
+                .allowIO(true)
+                .allowPolyglotAccess(PolyglotAccess.ALL)
+                .allowHostAccess(HostAccess.ALL)
+                .option("python.PythonPath", "DataQualityReport_javacall/venv")
+                .option("python.Executable", VENV_EXECUTABLE)
+                .build();) {
             context.eval(PYTHON, "print('Hello Python!')");
 
             context.eval(PYTHON, "import sys; print(sys.version)");
+            context.eval(PYTHON, "import sys; print(sys.getrecursionlimit())");
+            context.eval(PYTHON, "import os; cwd = os.getcwd(); print(cwd)");
+            context.eval(PYTHON, "sourceFile = open('test.txt', 'w'); print(\"test graalvm cwp\", file = sourceFile); sourceFile.close()");
 
 //            //4 This approach will not work  for multiline strings, if/else, function definitions, but is good for tiny script debugging.
 //            try(BufferedReader br = new BufferedReader(new FileReader(pyFilename))) {
@@ -58,28 +68,29 @@ public class DataQualityReport_javacall {
 //                log("IOException "+e);
 //            }
             //Run python file 1
-            log("Run python file 1!");
-            InputStreamReader reader = new InputStreamReader(SOURCE_FILE_INPUT_1);
-            Source source;
-            try {
-                source = Source.newBuilder(PYTHON, reader, SOURCE_FILE_NAME_1).build();
-            } catch (IOException e) {
-                log("IOException!");
-                throw new RuntimeException(e);
-            }
-            context.eval(source);
-
-            //Run python file 2
-//            log("Run python file 2!");
-//            InputStreamReader reader2 = new InputStreamReader(SOURCE_FILE_INPUT_2);
-//            Source source2;
+//            log("Run python file 1!");
+//            InputStreamReader reader = new InputStreamReader(SOURCE_FILE_INPUT_1);
+//            Source source;
 //            try {
-//                source2 = Source.newBuilder(PYTHON, reader2, SOURCE_FILE_NAME_2).build();
+//                source = Source.newBuilder(PYTHON, reader, SOURCE_FILE_NAME_1).build();
 //            } catch (IOException e) {
 //                log("IOException!");
 //                throw new RuntimeException(e);
 //            }
-//            context.eval(source2);
+//            context.eval(source);
+
+            //Run python file 2
+            log("Run python file 2!");
+            log(SOURCE_FILE_INPUT_2.toString());
+            InputStreamReader reader2 = new InputStreamReader(SOURCE_FILE_INPUT_2);
+            Source source2;
+            try {
+                source2 = Source.newBuilder(PYTHON, reader2, SOURCE_FILE_NAME_2).build();
+            } catch (IOException e) {
+                log("IOException!");
+                throw new RuntimeException(e);
+            }
+            context.eval(source2);
 
         }
     }
