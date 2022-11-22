@@ -41,13 +41,13 @@ public class DataQualityReport_javacall {
         //try (Context context = Context.newBuilder(PYTHON).allowAllAccess(true).build()) {
         try (Context context = Context.newBuilder("python")
                 .allowAllAccess(true)
-                .option("python.ForceImportSite", "true")
                 .allowNativeAccess(true)
                 .allowIO(true)
                 .allowPolyglotAccess(PolyglotAccess.ALL)
                 .allowHostAccess(HostAccess.ALL)
-                .option("python.PythonPath", "DataQualityReport_javacall/venv")
+                .option("python.PythonPath", "DataQualityReport_javacall/src/main/resources")
                 .option("python.Executable", VENV_EXECUTABLE)
+                .option("python.ForceImportSite", "true")
                 .build();) {
             context.eval(PYTHON, "print('Hello Python!')");
 
